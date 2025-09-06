@@ -6,5 +6,7 @@ export interface SignupParams {
   role: string
   name: string
   email: string
+  department?: string
+  studentCode?: string
   password: string
 }

@@ -10,9 +10,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import Image from 'next/image'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useRouter } from 'next/navigation'
 import { useForm, SubmitHandler } from 'react-hook-form'
 
 import useStyles from './AttendanceSessionForm.style'

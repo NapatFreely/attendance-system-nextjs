@@ -1,23 +1,41 @@
-// import { isAxiosError } from 'axios'
+import { isAxiosError } from 'axios'
 
-// import axios from '@/lib/axios'
+import axios from '@/lib/axios'
+import {
+  GetAccessTokenResponse,
+  GetSignInRequest,
+  GetSignUpRequest,
+  GetSignUpResponse,
+} from '@/features/authentication/types'
 
-// export const login = async (
-//   request: GetBrandListRequest
-// ): Promise<GetBrandListResponse> => {
-//   try {
-//     const response = await axios.get(`/admin/brands`, {
-//       params: request,
-//     })
+export const postSignup = async (
+  request: GetSignUpRequest
+): Promise<GetSignUpResponse> => {
+  try {
+    const response = await axios.post(`/users`, request)
 
-//     const { data: brandList, pagination } = response.data
+    return response.data
+  } catch (error) {
+    if (isAxiosError(error)) {
+      throw error.response?.data
+    }
 
-//     return { brandList, pagination }
-//   } catch (error) {
-//     if (isAxiosError(error)) {
-//       throw error.response?.data
-//     }
+    throw new Error('Error post signup.')
+  }
+}
 
-//     throw new Error('Error fetching brand list.')
-//   }
-// }
+export const postSignin = async (
+  request: GetSignInRequest
+): Promise<GetAccessTokenResponse> => {
+  try {
+    const response = await axios.post(`/login`, request)
+
+    return response.data
+  } catch (error) {
+    if (isAxiosError(error)) {
+      throw error.response?.data
+    }
+
+    throw new Error('Error post singin.')
+  }
+}

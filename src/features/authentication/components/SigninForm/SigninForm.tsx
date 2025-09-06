@@ -37,22 +37,29 @@ const SigninForm: FC<SigninFormProps> = () => {
     password,
   }) => {}
 
-  const redirectToHome = () => {
-    router.replace(Route.HOME)
-  }
   return (
     <Box component="form" onSubmit={handleSubmit(handleOnSubmit)}>
       <Stack spacing={2} sx={styles.form}>
         <Typography variant="h2">Log in</Typography>
         <Divider />
-        <TextField id="email" label="EMAIL" variant="filled" />
+        <TextField
+          id="email"
+          label="EMAIL"
+          variant="filled"
+          {...register('email')}
+          error={!!errors.email}
+          helperText={errors.email?.message}
+        />
         <TextField
           id="password"
           label="Password"
           variant="filled"
           type="password"
+          {...register('password')}
+          error={!!errors.password}
+          helperText={errors.password?.message}
         />
-        <Button variant="contained" type="submit" onClick={redirectToHome}>
+        <Button variant="contained" type="submit">
           Login
         </Button>
       </Stack>

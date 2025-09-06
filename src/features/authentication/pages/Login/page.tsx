@@ -10,7 +10,6 @@ import { LocalStorageKey } from '@/types/local-storage'
 import useStyles from './page.style'
 import { useRouter } from 'next/navigation'
 import { Route } from '@/types/route.type'
-import Link from 'next/link'
 
 const LOGO_IMG_URL = '/logo-web-app.png'
 

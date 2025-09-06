@@ -7,7 +7,7 @@ import Router from 'next/router'
 import { Route } from '@/types/route.type'
 
 const axiosClient = axios.create({
-  baseURL: `${appConfig.NEXT_PUBLIC_APP_BASE_URL}/api`,
+  baseURL: `${appConfig.NEXT_PUBLIC_APP_BASE_URL}/api/v1`,
   headers: {
     'Content-Type': 'application/json',
   },
