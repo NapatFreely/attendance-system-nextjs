@@ -27,6 +27,13 @@ export interface GetSignUpResponse {
   data: SignUp
 }
 
-export interface GetAccessTokenResponse {
-  data: AccessToken
+export interface GetSignInResponse {
+  role: number
+  accessToken: string
+}
+
+export interface GetUserResponse extends SignUp {
+  userId: number
+  studentCode?: string
+  department?: string
 }

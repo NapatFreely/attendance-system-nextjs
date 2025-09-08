@@ -5,6 +5,7 @@ export enum Route {
   Signup = '/signup',
 
   HOME = '/home',
+  COURSE = '/course',
   HISTORY = '/history',
   CREATE_QR_CODE = '/create-qr-code',
   LEAVE_REQUEST = '/leave-request',

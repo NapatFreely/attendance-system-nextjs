@@ -3,11 +3,8 @@ export interface LeaveRequestFormProps {
 }
 
 export interface LeaveRequestFormParams {
-  studentId: string
-  name: string
-  courseId: string
-  courseName: string
-  sessionId: string
+  courseId: number
+  sessionId: number
   reason: string
-  attachmentFile: File
+  attachmentFile?: File
 }

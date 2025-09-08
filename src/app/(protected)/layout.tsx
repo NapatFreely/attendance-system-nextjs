@@ -1,27 +1,6 @@
 import React, { ReactNode } from 'react'
-import { Box, Stack, Typography } from '@mui/material'
+import ClientLayout from './ClientLayout'
 
-export const dynamic = 'force-dynamic'
-const Layout = ({ children }: Readonly<{ children: ReactNode }>) => {
-  return (
-    <Stack>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          textAlign: 'center',
-          justifyContent: 'end',
-          background: '#FF6600',
-          padding: '16px',
-          color: 'white',
-        }}
-      >
-        <Typography sx={{ minWidth: 100 }}>Profile</Typography>
-        <Typography sx={{ minWidth: 100 }}>Logout</Typography>
-      </Box>
-      {children}
-    </Stack>
-  )
+export default function Layout({ children }: { children: ReactNode }) {
+  return <ClientLayout>{children}</ClientLayout>
 }
-
-export default Layout

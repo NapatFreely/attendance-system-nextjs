@@ -48,29 +48,9 @@ axiosClient.interceptors.response.use(
     return response
   },
   async (error) => {
-    const originalRequest = error.config
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-
-      try {
-        // attempt to read a new token (from localStorage or refresh flow)
-        const newAccessToken = localStorage.getItem(
-          LocalStorageKey.ACCESS_TOKEN
-        )
-
-        if (newAccessToken) {
-          // update the header and retry request
-          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`
-          return axiosClient(originalRequest)
-        }
-
-        // if no token available, force login
-        localStorage.removeItem(LocalStorageKey.ACCESS_TOKEN)
-        Router.push(Route.LOGIN)
-      } catch (err) {
-        Router.push(Route.LOGIN)
-      }
+    if (error.response?.status === 401) {
+      localStorage.removeItem(LocalStorageKey.ACCESS_TOKEN)
+      Router.push(Route.LOGIN)
     }
 
     return Promise.reject(error)

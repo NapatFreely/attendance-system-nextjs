@@ -19,65 +19,17 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 import useStyles from './HistorySidebar.style'
 import { Route } from '@/types/route.type'
-import { GetHistoryResponse, History } from '@/features/history/types'
 import useCompose from './HistorySidebar.compose'
+import { GetAttendanceSessionResponse } from '@/features/attendance-session/types'
+import { useGetAttendanceSession } from '@/features/attendance-session/hooks'
+import { convertToFullDateTime } from '@/utils/date-time'
 
 interface HistorySidebarProps {
-  onSelect: (history: History) => void
+  onSelect: (history: GetAttendanceSessionResponse) => void
 }
 
-const mockData: GetHistoryResponse = {
-  data: [
-    {
-      id: 1,
-      courseId: 'Test',
-      courseName: 'Test',
-      sessionId: 'Test',
-      sessionDate: 'Test',
-    },
-    {
-      id: 2,
-      courseId: 'Test1',
-      courseName: 'Test1',
-      sessionId: 'Test1',
-      sessionDate: 'Test1',
-    },
-    {
-      id: 3,
-      courseId: 'Test3',
-      courseName: 'Test3',
-      sessionId: 'Test3',
-      sessionDate: 'Test3',
-    },
-    {
-      id: 4,
-      courseId: 'Test4',
-      courseName: 'Test4',
-      sessionId: 'Test4',
-      sessionDate: 'Test4',
-    },
-    {
-      id: 5,
-      courseId: 'Test5',
-      courseName: 'Test5',
-      sessionId: 'Test5',
-      sessionDate: 'Test5',
-    },
-    {
-      id: 6,
-      courseId: 'Test6',
-      courseName: 'Test6',
-      sessionId: 'Test6',
-      sessionDate: 'Test6',
-    },
-    {
-      id: 7,
-      courseId: 'Test7',
-      courseName: 'Test7',
-      sessionId: 'Test7',
-      sessionDate: 'Test7',
-    },
-  ] as History[],
+type CardDetailProps = {
+  history: GetAttendanceSessionResponse
 }
 
 const HistorySidebar: FC<HistorySidebarProps> = ({ onSelect }) => {
@@ -85,18 +37,22 @@ const HistorySidebar: FC<HistorySidebarProps> = ({ onSelect }) => {
   const styles = useStyles()
   const compose = useCompose()
   const [id, setId] = useState<number>()
+  const { data } = useGetAttendanceSession()
 
-  const CardDetail = (history: History) => {
+  const CardDetail = ({ history }: CardDetailProps) => {
     return (
       <>
         <CardContent>
           <Typography variant="body1">
-            {history.courseId} {history.courseName}
+            {history.course.courseCode} {history.course.courseName}
           </Typography>
-          <Typography variant="body1">{history.sessionDate}</Typography>
+          <Typography variant="body1">
+            {convertToFullDateTime(history.sessionDate)}
+          </Typography>
           <Typography variant="body1">
             SESSION ID: {history.sessionId}
           </Typography>
+          <Typography variant="body1">SEMESTER: {history.semester}</Typography>
         </CardContent>
       </>
     )
@@ -105,7 +61,7 @@ const HistorySidebar: FC<HistorySidebarProps> = ({ onSelect }) => {
   return (
     <Box sx={styles.sidebar}>
       <Stack spacing={1}>
-        {mockData.data.map((item: History) => (
+        {data?.map((item: GetAttendanceSessionResponse) => (
           <Card
             key={item.id}
             variant="outlined"
@@ -115,13 +71,7 @@ const HistorySidebar: FC<HistorySidebarProps> = ({ onSelect }) => {
               setId(item.id)
             }}
           >
-            <CardDetail
-              id={item.id}
-              courseId={item.courseId}
-              courseName={item.courseName}
-              sessionId={item.sessionId}
-              sessionDate={item.sessionDate}
-            />
+            <CardDetail history={item} />
           </Card>
         ))}
       </Stack>

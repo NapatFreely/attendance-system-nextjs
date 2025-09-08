@@ -1,5 +1,5 @@
 'use client'
-import { FC } from 'react'
+import { FC, useMemo, useState } from 'react'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -10,19 +10,31 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import Image from 'next/image'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useRouter } from 'next/navigation'
 import { useForm, SubmitHandler } from 'react-hook-form'
 
 import useStyles from './SigninForm.style'
 import { SigninFormProps, SigninParams } from './SigninForm.type'
 import schema from './SigninForm.schema'
 import { Route } from '@/types/route.type'
+import useSignIn from '@/features/authentication/hooks/useSignIn'
+import ModalProgress, {
+  ModalProgressState,
+  ModalProgressStatus,
+} from '@/components/ModalProgress/ModalProgress'
+import { RoleEnum } from '@/features/authentication/enum/role'
+import { GetSignInRequest } from '@/features/authentication/types'
+import { LocalStorageKey } from '@/types/local-storage'
+import { setAuthCookie } from '@/utils/set-auth-cookie/set-auth-cookie'
 
 const SigninForm: FC<SigninFormProps> = () => {
   const router = useRouter()
   const styles = useStyles()
+  const signIn = useSignIn()
+  const [modalProgress, setModalProgress] = useState<ModalProgressState>({
+    isOpen: false,
+    status: ModalProgressStatus.LOADING,
+  })
 
   const {
     register,
@@ -35,7 +47,75 @@ const SigninForm: FC<SigninFormProps> = () => {
   const handleOnSubmit: SubmitHandler<SigninParams> = async ({
     email,
     password,
-  }) => {}
+  }) => {
+    setModalProgress({
+      isOpen: true,
+      status: ModalProgressStatus.LOADING,
+    })
+    const request: GetSignInRequest = {
+      email: email,
+      password: password,
+    }
+    signIn.mutate(request, {
+      onSuccess: async (response) => {
+        const accessToken = response?.accessToken
+        const role = response?.role
+
+        if (accessToken) {
+          localStorage.setItem(LocalStorageKey.ACCESS_TOKEN, accessToken)
+          localStorage.setItem(
+            LocalStorageKey.ROLE,
+            role === 0 ? RoleEnum.STUDENT : RoleEnum.TEACHER
+          )
+          await setAuthCookie(accessToken)
+        }
+        setModalProgress({
+          isOpen: false,
+          status: ModalProgressStatus.SUCCESS,
+        })
+        router.push(Route.HOME)
+      },
+      onError: () => {
+        setModalProgress({
+          isOpen: true,
+          status: ModalProgressStatus.ERROR,
+        })
+      },
+    })
+  }
+
+  const progressModalContent = useMemo(() => {
+    switch (modalProgress.status) {
+      case ModalProgressStatus.LOADING:
+        return {
+          title: 'Creating...',
+          description: 'Please do nothing while creating.',
+        }
+      case ModalProgressStatus.SUCCESS:
+        return {
+          title: 'Success to SignIn',
+          description: <Box>Success</Box>,
+        }
+      case ModalProgressStatus.ERROR:
+        return {
+          title: 'Failed to SignIn',
+          description: <Stack>{signIn.error?.message}</Stack>,
+        }
+      default:
+        return {
+          title: '',
+          description: '',
+        }
+    }
+  }, [modalProgress.status])
+
+  const handleCloseModal = () => {
+    setModalProgress({ isOpen: false, status: ModalProgressStatus.LOADING })
+  }
+
+  const handleConfirmModal = () => {
+    setModalProgress({ isOpen: false, status: ModalProgressStatus.LOADING })
+  }
 
   return (
     <Box component="form" onSubmit={handleSubmit(handleOnSubmit)}>
@@ -63,6 +143,21 @@ const SigninForm: FC<SigninFormProps> = () => {
           Login
         </Button>
       </Stack>
+      <ModalProgress
+        open={modalProgress.isOpen}
+        status={modalProgress.status}
+        onClose={handleCloseModal}
+        title={progressModalContent.title}
+        description={progressModalContent.description}
+        width="360px"
+        button={{
+          confirm: {
+            text: 'OK',
+            onClick: handleConfirmModal,
+            disabled: signIn.isPending,
+          },
+        }}
+      />
     </Box>
   )
 }

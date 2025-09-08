@@ -17,8 +17,15 @@ const TeacherMenu = () => {
     router.push(Route.HISTORY)
   }
 
+  const redirectToCourse = () => {
+    router.push(Route.COURSE)
+  }
+
   return (
     <Stack spacing={2} sx={styles.form}>
+      <Button variant="contained" onClick={redirectToCourse}>
+        สร้างคอร์ส
+      </Button>
       <Button variant="contained" onClick={redirectToAttendanceSession}>
         สร้างรายชื่อรายวิชาที่สอน
       </Button>

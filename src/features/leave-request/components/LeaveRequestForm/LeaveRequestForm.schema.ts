@@ -3,13 +3,10 @@ import { ZodType } from 'zod'
 import { LeaveRequestFormParams } from './LeaveRequestForm.type'
 
 const schema: ZodType<LeaveRequestFormParams> = z.object({
-  studentId: z.string(),
-  name: z.string(),
-  courseId: z.string(),
-  courseName: z.string(),
-  sessionId: z.string(),
-  reason: z.string(),
-  attachmentFile: z.instanceof(File),
+  courseId: z.number().min(1, 'This is required'),
+  sessionId: z.number().min(1, 'This is required'),
+  reason: z.string().min(1, 'This is required'),
+  attachmentFile: z.instanceof(File).optional(),
 })
 
 export default schema

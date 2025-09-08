@@ -1,18 +1,18 @@
 import { isAxiosError } from 'axios'
 
-import axios from '@/lib/axios'
 import {
-  GetAccessTokenResponse,
+  GetSignInResponse,
   GetSignInRequest,
   GetSignUpRequest,
   GetSignUpResponse,
 } from '@/features/authentication/types'
+import axiosClient from '@/lib/axios'
 
 export const postSignup = async (
   request: GetSignUpRequest
 ): Promise<GetSignUpResponse> => {
   try {
-    const response = await axios.post(`/users`, request)
+    const response = await axiosClient.post(`/users`, request)
 
     return response.data
   } catch (error) {
@@ -26,9 +26,11 @@ export const postSignup = async (
 
 export const postSignin = async (
   request: GetSignInRequest
-): Promise<GetAccessTokenResponse> => {
+): Promise<GetSignInResponse> => {
   try {
-    const response = await axios.post(`/login`, request)
+    const response = await axiosClient.post(`/auth/login`, request, {
+      withCredentials: true,
+    })
 
     return response.data
   } catch (error) {
@@ -36,6 +38,6 @@ export const postSignin = async (
       throw error.response?.data
     }
 
-    throw new Error('Error post singin.')
+    throw new Error('Error singin.')
   }
 }

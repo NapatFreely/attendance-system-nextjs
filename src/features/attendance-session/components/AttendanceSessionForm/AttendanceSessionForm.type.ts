@@ -3,8 +3,8 @@ export interface AttendanceSessionFormProps {
 }
 
 export interface AttendanceSessionFormParams {
-  courseId: string
-  courseName: string
+  courseId: number
   sessionId: string
   sessionDate: string
+  semester: string
 }

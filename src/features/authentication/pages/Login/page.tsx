@@ -1,11 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-
 import { Box, Button, Stack, Typography } from '@mui/material'
 import Image from 'next/image'
-
-import { LocalStorageKey } from '@/types/local-storage'
 
 import useStyles from './page.style'
 import { useRouter } from 'next/navigation'
@@ -16,18 +12,6 @@ const LOGO_IMG_URL = '/logo-web-app.png'
 const LoginPage = () => {
   const styles = useStyles()
   const router = useRouter()
-
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleKeycloakLogin = async () => {
-    try {
-      setIsLoading(true)
-      localStorage.setItem(LocalStorageKey.SIGN_IN_SUCCESS, 'true')
-    } catch (error) {
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const redirectToSignin = () => {
     router.push(Route.Signin)

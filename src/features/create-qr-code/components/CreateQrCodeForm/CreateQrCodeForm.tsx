@@ -10,46 +10,25 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import Image from 'next/image'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
+import QRCode from 'react-qr-code'
 
 import useStyles from './CreateQrCodeForm.style'
-import { Route } from '@/types/route.type'
-import { SubmitHandler, useForm } from 'react-hook-form'
-import schema from './CreateQrCodeForm.schema'
-import { CreateQrCodeFormParams } from './CreateQrCodeForm.type'
 
 const CreateQrCodeForm = () => {
-  const router = useRouter()
+  const { qrCode } = useParams()
   const styles = useStyles()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid },
-  } = useForm<CreateQrCodeFormParams>({
-    resolver: zodResolver(schema),
-  })
-
-  const handleOnSubmit: SubmitHandler<CreateQrCodeFormParams> = async ({
-    studentId,
-    name,
-  }) => {}
-
   return (
-    <Box component="form" onSubmit={handleSubmit(handleOnSubmit)}>
+    <Box component="form">
       <Stack spacing={2} sx={styles.form}>
         <Typography variant="h2">QR Code</Typography>
         <Divider />
-        <TextField id="studentId" label="STUDENT ID" variant="filled" />
-        <TextField id="name" label="NAME" variant="filled" />
-        <Button
-          variant="contained"
-          // type="submit"
-          onClick={() => router.push(Route.OPEN_CAMERA)}
-        >
-          Submit Qr Code
-        </Button>
+        <QRCode
+          style={{ alignSelf: 'center' }}
+          value={String(qrCode)}
+          size={200}
+        />
       </Stack>
     </Box>
   )

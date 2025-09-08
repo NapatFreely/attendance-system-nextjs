@@ -28,6 +28,7 @@
     "axios": "^1.7.2",
     "classnames": "^2.5.1",
     "cookies-next": "^4.2.1",
+    "date-fns": "^4.1.0",
     "dayjs": "^1.11.12",
     "debounce": "^2.1.0",
     "merge-sx": "^3.0.1",

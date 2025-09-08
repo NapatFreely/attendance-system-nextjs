@@ -6,11 +6,11 @@ import useStyles from './page.style'
 import { HistoryTable } from '@/features/history/components/HistoryTable'
 import { HistorySidebar } from '@/features/history/components/HistorySidebar'
 import { useState } from 'react'
-import type { History } from '@/features/history/types'
+import { GetAttendanceSessionResponse } from '@/features/attendance-session/types'
 
 const History = () => {
   const styles = useStyles()
-  const [history, setHistory] = useState<History>()
+  const [history, setHistory] = useState<GetAttendanceSessionResponse>()
 
   return (
     <Box sx={styles.container}>
@@ -19,7 +19,7 @@ const History = () => {
           setHistory(history)
         }}
       ></HistorySidebar>
-      <HistoryTable history={history}></HistoryTable>
+      <HistoryTable key={history?.id} history={history}></HistoryTable>
     </Box>
   )
 }
