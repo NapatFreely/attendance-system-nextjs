@@ -7,6 +7,8 @@ import { Close24 } from '@/assets/icons'
 import { useSearchParams } from 'next/navigation'
 import { useCreateAttendanceRecord } from '@/features/history/hooks'
 import { GetAttendanceRecordRequest } from '@/features/history/types'
+import { getDistance } from 'geolib'
+import * as geolib from 'geolib'
 
 const OpenCameraForm = () => {
   const searchParams = useSearchParams()
@@ -15,12 +17,32 @@ const OpenCameraForm = () => {
   const [isClient, setIsClient] = useState(false)
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
+  const [location, setLocation] = useState<{ lat: number; lon: number } | null>(
+    null
+  )
+  const [error, setError] = useState<string | null>(null)
+
   const createAttendanceRecord = useCreateAttendanceRecord()
 
   const courseId = searchParams.get('courseId')
   const sessionId = searchParams.get('sessionId')
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+  const requestCamera = async () => {
+    try {
+      // Ask for camera access
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: false,
+      })
+
+      // You can stop the camera stream immediately if you only want permission
+      stream.getTracks().forEach((track) => track.stop())
+    } catch (err: any) {
+      setError(err.message)
+    }
+  }
 
   const { ref } = useZxing({
     deviceId,
@@ -37,6 +59,19 @@ const OpenCameraForm = () => {
       const id = searchParams.get('id')
       const name = searchParams.get('name')
       const expiredAt = searchParams.get('expiredAt')
+      const lat = Number(searchParams.get('lat'))
+      const lon = Number(searchParams.get('lon'))
+
+      const distanceMeters = getDistance(
+        { latitude: lat, longitude: lon },
+        { latitude: location?.lat ?? 0, longitude: location?.lon ?? 0 }
+      )
+
+      if (geolib.convertDistance(distanceMeters, 'm') > 2) {
+        setMessage('ไม่ได้อยู่ในระยะเช็ดชื่อ')
+        setOpen(true)
+        return
+      }
 
       if (!expiredAt) return
 
@@ -70,9 +105,37 @@ const OpenCameraForm = () => {
     },
   })
 
+  useEffect(() => {
+    if (!('geolocation' in navigator)) {
+      setError('Geolocation is not supported by your browser.')
+      return
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        setLocation({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        })
+        setError(null)
+      },
+      (err) => {
+        setError(err.message) // e.g., kCLErrorLocationUnknown
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    )
+
+    return () => navigator.geolocation.clearWatch(watchId)
+  }, [])
+
   // Only run on client
   useEffect(() => {
     setIsClient(true)
+    requestCamera()
   }, [])
 
   // Detect available video devices and pick camera

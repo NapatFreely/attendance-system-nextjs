@@ -32,6 +32,7 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.12",
     "debounce": "^2.1.0",
+    "geolib": "^3.3.4",
     "jspdf": "^3.0.2",
     "jspdf-autotable": "^5.0.2",
     "merge-sx": "^3.0.1",
