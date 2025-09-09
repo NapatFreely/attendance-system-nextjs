@@ -28,40 +28,67 @@ const CreateQrCodeForm = () => {
   const generatedAt = searchParams.get('generatedAt')
   const expiredAt = searchParams.get('expiredAt')
 
+  // useEffect(() => {
+  //   if (!('geolocation' in navigator)) {
+  //     setError('Geolocation is not supported by your browser.')
+  //     return
+  //   }
+
+  //   // function to fetch location
+  //   const getLocation = () => {
+  //     navigator.geolocation.getCurrentPosition(
+  //       (position) => {
+  //         setLocation({
+  //           lat: position.coords.latitude,
+  //           lon: position.coords.longitude,
+  //         })
+  //       },
+  //       (err) => {
+  //         setError(err.message)
+  //       },
+  //       {
+  //         enableHighAccuracy: true,
+  //         timeout: 10000,
+  //         maximumAge: 0,
+  //       }
+  //     )
+  //   }
+
+  //   // get location immediately
+  //   getLocation()
+
+  //   // repeat every 5 seconds
+  //   const interval = setInterval(getLocation, 5000)
+
+  //   // cleanup
+  //   return () => clearInterval(interval)
+  // }, [])
+
   useEffect(() => {
     if (!('geolocation' in navigator)) {
       setError('Geolocation is not supported by your browser.')
       return
     }
 
-    // function to fetch location
-    const getLocation = () => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-          })
-        },
-        (err) => {
-          setError(err.message)
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        }
-      )
-    }
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        setLocation({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        })
+        setError(null)
+      },
+      (err) => {
+        setError(err.message) // e.g., kCLErrorLocationUnknown
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    )
 
-    // get location immediately
-    getLocation()
-
-    // repeat every 5 seconds
-    const interval = setInterval(getLocation, 5000)
-
-    // cleanup
-    return () => clearInterval(interval)
+    return () => navigator.geolocation.clearWatch(watchId)
   }, [])
 
   return (
