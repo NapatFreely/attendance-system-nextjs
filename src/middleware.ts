@@ -9,7 +9,8 @@ export function middleware(req: NextRequest) {
     !token &&
     req.nextUrl.pathname !== Route.LOGIN &&
     req.nextUrl.pathname !== Route.Signin &&
-    req.nextUrl.pathname !== Route.Signup
+    req.nextUrl.pathname !== Route.Signup &&
+    req.nextUrl.pathname !== '/qr-scan'
   ) {
     return NextResponse.redirect(new URL(Route.LOGIN, req.url))
   }

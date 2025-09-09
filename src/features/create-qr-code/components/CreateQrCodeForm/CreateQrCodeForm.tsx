@@ -10,14 +10,19 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import QRCode from 'react-qr-code'
 
 import useStyles from './CreateQrCodeForm.style'
 
 const CreateQrCodeForm = () => {
-  const { qrCode } = useParams()
+  const searchParams = useSearchParams()
   const styles = useStyles()
+
+  const id = searchParams.get('id')
+  const name = searchParams.get('name')
+  const generatedAt = searchParams.get('generatedAt')
+  const expiredAt = searchParams.get('expiredAt')
 
   return (
     <Box component="form">
@@ -26,7 +31,9 @@ const CreateQrCodeForm = () => {
         <Divider />
         <QRCode
           style={{ alignSelf: 'center' }}
-          value={String(qrCode)}
+          value={String(
+            `?id=${id}&name=${name}&generatedAt=${generatedAt}&expiredAt=${expiredAt}`
+          )}
           size={200}
         />
       </Stack>

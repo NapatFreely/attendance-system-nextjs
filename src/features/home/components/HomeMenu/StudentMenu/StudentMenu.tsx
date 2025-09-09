@@ -31,9 +31,16 @@ const SigninForm = () => {
     const generatedAt = new Date()
     const expiredAt = new Date(generatedAt.getTime() + 60 * 60 * 1000) // +1 hour
 
+    const params = new URLSearchParams({
+      id: profile?.id?.toString() ?? '',
+      name: profile?.name ?? '',
+      generatedAt: generatedAt.toISOString(),
+      expiredAt: expiredAt.toISOString(),
+    })
+
     const request: GetQrCodeRequest = {
       studentId: profile?.id ?? -1,
-      qrValue: `${profile?.id}:name:${profile?.name}:generatedA:;${generatedAt.toISOString()}:expiredAt:${expiredAt.toISOString()}`,
+      qrValue: `?${params.toString()}`,
       generatedAt: generatedAt.toISOString(),
       expiredAt: expiredAt.toISOString(),
     }
@@ -44,7 +51,7 @@ const SigninForm = () => {
           isOpen: false,
           status: ModalProgressStatus.SUCCESS,
         })
-        router.push(`${Route.CREATE_QR_CODE}/${response.qrValue}`)
+        router.push(`${Route.CREATE_QR_CODE}${response.qrValue}`)
       },
       onError: () => {
         setModalProgress({

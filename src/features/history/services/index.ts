@@ -56,3 +56,19 @@ export const updateAttendanceRecordHistory = async (
     throw new Error('Error update attendance record history.')
   }
 }
+
+export const createAttendanceRecord = async (
+  request: GetAttendanceRecordRequest
+): Promise<GetAttendanceRecordResponse> => {
+  try {
+    const response = await axiosClient.post(`/attendanceRecord`, request)
+
+    return response.data
+  } catch (error) {
+    if (isAxiosError(error)) {
+      throw error.response?.data
+    }
+
+    throw new Error('Error create leave request.')
+  }
+}

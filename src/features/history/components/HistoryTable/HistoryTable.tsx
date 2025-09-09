@@ -19,7 +19,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from '@mui/material'
 import { useRouter } from 'next/navigation'
@@ -27,7 +26,8 @@ import {
   GetUpdateAttendanceRecordRequest,
   Status,
 } from '@/features/history/types'
-
+import jsPDF from 'jspdf'
+import { autoTable } from 'jspdf-autotable'
 import useStyles from './HistoryTable.style'
 import { Route } from '@/types/route.type'
 import { GetAttendanceSessionResponse } from '@/features/attendance-session/types'
@@ -37,9 +37,7 @@ import {
 } from '../../hooks'
 import { convertToCheckIn } from '@/utils/date-time'
 import appConfig from '@/appConfig'
-import { profile } from 'console'
 import { useProfile } from '@/features/authentication/layout/ProfileProvider'
-import { RoleEnum } from '@/features/authentication/enum/role'
 
 interface HistoryTableProps {
   history?: GetAttendanceSessionResponse
@@ -57,6 +55,21 @@ const statuses: Status[] = [
   {
     id: 2,
     text: 'ลาป่วย',
+  },
+]
+
+const statusEng: Status[] = [
+  {
+    id: 0,
+    text: 'present',
+  },
+  {
+    id: 1,
+    text: 'late',
+  },
+  {
+    id: 2,
+    text: 'sick leave',
   },
 ]
 
@@ -99,10 +112,49 @@ const HistoryTable: FC<HistoryTableProps> = ({ history }) => {
     updateAttendanceRecordHistory.mutate(request)
   }
 
-  const handleDownload = () => {}
+  const handleDownload = () => {
+    const doc = new jsPDF()
+    const tableColumn = [
+      'Student Code',
+      'Name',
+      'Check-in datetime',
+      'Status',
+      'Reason',
+    ]
+    const tableRows: any[] = []
+
+    data?.forEach((item) => {
+      const rowData = [
+        item.student.studentCode,
+        item.student.name,
+        convertToCheckIn(item.checkInTime),
+        statusEng.find((status) => status.id === item.status)?.text ?? '-',
+        item.reason || '-',
+      ]
+      tableRows.push(rowData)
+    })
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    })
+
+    doc.text(`${history?.courseId} ${history?.courseName}`, 14, 15)
+    doc.save(`${history?.courseId}_${history?.courseName}.pdf`)
+  }
 
   const redirectToHome = () => {
     router.replace(Route.HOME)
+  }
+
+  const redirectToScan = () => {
+    const params = new URLSearchParams({
+      courseId: history?.courseId ?? '',
+      sessionId: String(history?.id ?? -1),
+    })
+
+    router.replace(`${Route.OPEN_CAMERA}?${params.toString()}`)
   }
 
   if (!history) {
@@ -116,7 +168,12 @@ const HistoryTable: FC<HistoryTableProps> = ({ history }) => {
           {history.courseId} {history.courseName}
         </Typography>
         <Stack direction="row" spacing={2}>
-          <Button onClick={handleDownload}>Download</Button>
+          {Number(profile?.role ?? '1') === 1 && (
+            <Button onClick={redirectToScan}>Scan</Button>
+          )}
+          {Number(profile?.role ?? '1') === 1 && (
+            <Button onClick={handleDownload}>Download</Button>
+          )}
           <Button onClick={redirectToHome}>Home</Button>
         </Stack>
 
@@ -134,7 +191,11 @@ const HistoryTable: FC<HistoryTableProps> = ({ history }) => {
             </TableHead>
             <TableBody>
               {data
-                ?.filter((item) => profile?.id === item.student.userId)
+                ?.filter((item) =>
+                  Number(profile?.role ?? 1) === 1
+                    ? true
+                    : profile?.id === item.student.userId
+                )
                 ?.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell align="center">
