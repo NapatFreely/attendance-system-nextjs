@@ -1,5 +1,5 @@
 'use client'
-import { FC, useEffect, useState } from 'react'
+import { FC, useEffect, useMemo, useState } from 'react'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -9,6 +9,7 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
+  Modal,
   Paper,
   Select,
   SelectChangeEvent,
@@ -38,6 +39,13 @@ import {
 import { convertToCheckIn } from '@/utils/date-time'
 import appConfig from '@/appConfig'
 import { useProfile } from '@/features/authentication/layout/ProfileProvider'
+import ModalProgress, {
+  ModalProgressState,
+  ModalProgressStatus,
+} from '@/components/ModalProgress/ModalProgress'
+import { createQrCode } from '@/features/create-qr-code/services'
+import { useDeleteCourse } from '@/features/course/hooks'
+import { DeleteCourseRequest } from '@/features/course/types'
 
 interface HistoryTableProps {
   history?: GetAttendanceSessionResponse
@@ -79,9 +87,15 @@ const HistoryTable: FC<HistoryTableProps> = ({ history }) => {
   const [selectStatuses, setSelectStatuses] = useState<Record<number, number>>(
     {}
   )
+  const [open, setOpen] = useState(false)
   const { data } = useGetAttendanceRecordHistories(history?.id ?? 0)
   const updateAttendanceRecordHistory = useUpdateAttendanceRecordHistory()
   const { profile } = useProfile()
+  const [modalProgress, setModalProgress] = useState<ModalProgressState>({
+    isOpen: false,
+    status: ModalProgressStatus.LOADING,
+  })
+  const deleteCourse = useDeleteCourse()
 
   useEffect(() => {
     if (data) {
@@ -152,9 +166,101 @@ const HistoryTable: FC<HistoryTableProps> = ({ history }) => {
     const params = new URLSearchParams({
       courseId: history?.courseId ?? '',
       sessionId: String(history?.id ?? -1),
+      sessionDate: String(history?.sessionDate ?? ''),
     })
 
     router.replace(`${Route.OPEN_CAMERA}?${params.toString()}`)
+  }
+
+  const progressModalContent = useMemo(() => {
+    switch (modalProgress.status) {
+      case ModalProgressStatus.LOADING:
+        return {
+          title: 'Creating...',
+          description: 'Please do nothing while creating.',
+        }
+      case ModalProgressStatus.SUCCESS:
+        return {
+          title: 'Success',
+          description: <Box>Success</Box>,
+        }
+      case ModalProgressStatus.ERROR:
+        return {
+          title: 'Failed',
+          description: <Stack>{deleteCourse.error?.message}</Stack>,
+        }
+      default:
+        return {
+          title: '',
+          description: '',
+        }
+    }
+  }, [modalProgress.status])
+
+  const handleCloseModal = () => {
+    setModalProgress({ isOpen: false, status: ModalProgressStatus.LOADING })
+  }
+
+  const handleConfirmModal = () => {
+    setModalProgress({ isOpen: false, status: ModalProgressStatus.LOADING })
+  }
+
+  const onDelete = () => {
+    handleClose()
+    setModalProgress({
+      isOpen: true,
+      status: ModalProgressStatus.LOADING,
+    })
+
+    if (data && data?.length > 0) {
+      const sessionId = data[0]
+      const request: DeleteCourseRequest = {
+        id: Number(history?.courseId ?? 0),
+        sessionId: Number(sessionId?.sessionId ?? 0),
+      }
+
+      deleteCourse.mutate(request, {
+        onSuccess: () => {
+          setModalProgress({
+            isOpen: false,
+          })
+          router.refresh()
+        },
+        onError: () => {
+          setModalProgress({
+            isOpen: true,
+            status: ModalProgressStatus.ERROR,
+          })
+        },
+      })
+    } else {
+      const request: DeleteCourseRequest = {
+        id: Number(history?.courseId ?? 0),
+        sessionId: 0,
+      }
+
+      deleteCourse.mutate(request, {
+        onSuccess: (response) => {
+          setModalProgress({
+            isOpen: false,
+          })
+          window.location.reload()
+        },
+        onError: () => {
+          setModalProgress({
+            isOpen: true,
+            status: ModalProgressStatus.ERROR,
+          })
+        },
+      })
+    }
+  }
+
+  const handleOpen = () => {
+    setOpen(true)
+  }
+  const handleClose = () => {
+    setOpen(false)
   }
 
   if (!history) {
@@ -164,17 +270,47 @@ const HistoryTable: FC<HistoryTableProps> = ({ history }) => {
   return (
     <Box sx={styles.sidebar}>
       <Stack spacing={2}>
-        <Typography variant="h2">
-          {history.courseId} {history.courseName}
-        </Typography>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="center"
+          gap={2}
+        >
+          <Typography variant="h2">{history.courseName}</Typography>
+          <Button
+            sx={{ color: 'white', fontStyle: 'bold', background: 'red' }}
+            variant="contained"
+            onClick={handleOpen}
+          >
+            Delete
+          </Button>
+        </Stack>
         <Stack direction="row" spacing={2}>
           {Number(profile?.role ?? '1') === 1 && (
-            <Button onClick={redirectToScan}>Scan</Button>
+            <Button
+              sx={{ color: 'white', fontStyle: 'bold' }}
+              variant="contained"
+              onClick={redirectToScan}
+            >
+              Scan
+            </Button>
           )}
           {Number(profile?.role ?? '1') === 1 && (
-            <Button onClick={handleDownload}>Download</Button>
+            <Button
+              sx={{ color: 'white', fontStyle: 'bold' }}
+              variant="contained"
+              onClick={handleDownload}
+            >
+              Download
+            </Button>
           )}
-          <Button onClick={redirectToHome}>Home</Button>
+          <Button
+            sx={{ color: 'white', fontStyle: 'bold' }}
+            variant="contained"
+            onClick={redirectToHome}
+          >
+            Home
+          </Button>
         </Stack>
 
         <TableContainer component={Paper}>
@@ -249,6 +385,63 @@ const HistoryTable: FC<HistoryTableProps> = ({ history }) => {
           </Table>
         </TableContainer>
       </Stack>
+      <ModalProgress
+        open={modalProgress.isOpen}
+        status={modalProgress.status}
+        onClose={handleCloseModal}
+        title={progressModalContent.title}
+        description={progressModalContent.description}
+        width="360px"
+        button={{
+          confirm: {
+            text: 'OK',
+            onClick: handleConfirmModal,
+            disabled: deleteCourse.isPending,
+          },
+        }}
+      />
+
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="parent-modal-title"
+        aria-describedby="parent-modal-description"
+      >
+        <Stack
+          sx={{
+            width: 400,
+            background: 'white',
+            padding: 2,
+            borderRadius: 2,
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
+          gap={2}
+        >
+          <h2 id="parent-modal-title">Warning</h2>
+          <p id="parent-modal-description">
+            Do you want to delete this course?
+          </p>
+          <Stack direction="row" gap={2} alignItems="end" justifyContent="end">
+            <Button
+              sx={{ color: 'white', fontStyle: 'bold', background: 'red' }}
+              variant="contained"
+              onClick={handleClose}
+            >
+              Cancel
+            </Button>
+            <Button
+              sx={{ color: 'white', fontStyle: 'bold' }}
+              variant="contained"
+              onClick={onDelete}
+            >
+              Confirm
+            </Button>
+          </Stack>
+        </Stack>
+      </Modal>
     </Box>
   )
 }

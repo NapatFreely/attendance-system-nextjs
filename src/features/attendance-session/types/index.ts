@@ -4,8 +4,10 @@ export interface Semester {
 }
 
 export interface GetAttendanceSessionRequest {
+  teacherId: number
   courseId: number
   courseName: string
+  courseCode: string
   academicYear: number
   sessionId: string
   sessionDate: string

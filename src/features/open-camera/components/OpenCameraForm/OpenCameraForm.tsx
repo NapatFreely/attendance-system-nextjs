@@ -26,6 +26,7 @@ const OpenCameraForm = () => {
 
   const courseId = searchParams.get('courseId')
   const sessionId = searchParams.get('sessionId')
+  const sessionDate = searchParams.get('sessionDate')
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
@@ -75,15 +76,17 @@ const OpenCameraForm = () => {
 
       if (!expiredAt) return
 
-      const _expiredAt = new Date(expiredAt)
+      const sessionTime = sessionDate ? new Date(sessionDate) : new Date()
+      const _expiredAt = new Date(sessionTime.getTime() + 60 * 60 * 1000)
       const now = new Date()
+      const isExpired = now.getTime() > _expiredAt.getTime()
 
       // Or convert to an object
       const request: GetAttendanceRecordRequest = {
         sessionId: Number(sessionId ?? '-1'),
         courseId: Number(courseId ?? '-1'),
         studentId: Number(id ?? '-1'),
-        status: now > _expiredAt ? 1 : 0,
+        status: isExpired ? 1 : 0,
         checkInTime: new Date().toISOString(),
         reason: '',
         requestedAt: new Date().toISOString(),

@@ -11,4 +11,5 @@ export enum Route {
   LEAVE_REQUEST = '/leave-request',
   OPEN_CAMERA = '/open-camera',
   ATTENDANCE_SESSION = '/attendance-session',
+  SELECT_LOCATION = '/select-location',
 }

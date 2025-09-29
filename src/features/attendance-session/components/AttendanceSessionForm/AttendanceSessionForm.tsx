@@ -26,8 +26,9 @@ import ModalProgress, {
   ModalProgressStatus,
 } from '@/components/ModalProgress/ModalProgress'
 import { useCreateAttendanceSession } from '../../hooks'
-import { useGetCourses } from '@/features/course/hooks'
+import { useGetCoursesByTeacherId } from '@/features/course/hooks'
 import { Route } from '@/types/route.type'
+import { useProfile } from '@/features/authentication/layout/ProfileProvider'
 
 const semesters: Semester[] = [
   {
@@ -52,10 +53,12 @@ const AttendanceSessionForm: FC<AttendanceSessionFormProps> = () => {
     isOpen: false,
     status: ModalProgressStatus.LOADING,
   })
-  const [courseId, setCourseId] = useState<number>()
+  const [courseId, setCourseId] = useState<string>()
 
   const createAttendanceSession = useCreateAttendanceSession()
-  const { data } = useGetCourses()
+  const { profile } = useProfile()
+
+  const { data } = useGetCoursesByTeacherId(profile?.id ?? 0)
 
   const {
     register,
@@ -66,6 +69,8 @@ const AttendanceSessionForm: FC<AttendanceSessionFormProps> = () => {
   })
 
   const handleOnSubmit: SubmitHandler<AttendanceSessionFormParams> = async ({
+    courseCode,
+    courseName,
     courseId,
     sessionId,
     sessionDate,
@@ -79,8 +84,13 @@ const AttendanceSessionForm: FC<AttendanceSessionFormProps> = () => {
       status: ModalProgressStatus.LOADING,
     })
     const request: GetAttendanceSessionRequest = {
-      courseId: courseId ?? 0,
-      courseName: data?.find((item) => item.id === courseId)?.courseName ?? '',
+      teacherId: profile?.id ?? 0,
+      courseId: Number(courseId ?? 0),
+      courseName:
+        (courseName ||
+          data?.find((item) => item.id === courseId)?.courseName) ??
+        '',
+      courseCode: courseCode || '',
       academicYear: year,
       sessionId: sessionId,
       sessionDate: sessionDate,
@@ -146,18 +156,35 @@ const AttendanceSessionForm: FC<AttendanceSessionFormProps> = () => {
         <Typography variant="h2">Attendance Session</Typography>
         <Divider />
         <TextField
+          id="courseCode"
+          label="COURSE CODE"
+          variant="filled"
+          {...register('courseCode')}
+          error={!!errors.courseCode}
+          helperText={errors.courseCode?.message}
+        />
+        <TextField
           id="courseName"
+          label="COURSE NAME"
+          variant="filled"
+          {...register('courseName')}
+          error={!!errors.courseName}
+          helperText={errors.courseName?.message}
+        />
+        or
+        <TextField
+          id="courseId"
           select
           label="COURSE NAME"
-          value={courseId}
+          value={courseId || ''}
           variant="filled"
           {...register('courseId')}
           error={!!errors.courseId}
           helperText={errors.courseId?.message}
-          onChange={(e) => setCourseId(parseInt(e.target.value))}
+          onChange={(e) => setCourseId(e.target.value || '')}
         >
           {data?.map((option) => (
-            <MenuItem key={option.id} value={option.id}>
+            <MenuItem key={option.id} value={String(option.id)}>
               {`(${option.courseCode}) ${option.courseName}`}
             </MenuItem>
           ))}

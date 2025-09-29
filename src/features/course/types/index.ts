@@ -9,3 +9,8 @@ export interface GetCourseResponse {
   courseCode: string
   courseName: string
 }
+
+export interface DeleteCourseRequest {
+  id: number
+  sessionId?: number
+}
