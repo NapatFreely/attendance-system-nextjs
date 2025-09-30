@@ -211,49 +211,25 @@ const HistoryTable: FC<HistoryTableProps> = ({ history }) => {
       isOpen: true,
       status: ModalProgressStatus.LOADING,
     })
-
-    if (data && data?.length > 0) {
-      const sessionId = data[0]
-      const request: DeleteCourseRequest = {
-        id: Number(history?.courseId ?? 0),
-        sessionId: Number(sessionId?.sessionId ?? 0),
-      }
-
-      deleteCourse.mutate(request, {
-        onSuccess: () => {
-          setModalProgress({
-            isOpen: false,
-          })
-          router.refresh()
-        },
-        onError: () => {
-          setModalProgress({
-            isOpen: true,
-            status: ModalProgressStatus.ERROR,
-          })
-        },
-      })
-    } else {
-      const request: DeleteCourseRequest = {
-        id: Number(history?.courseId ?? 0),
-        sessionId: 0,
-      }
-
-      deleteCourse.mutate(request, {
-        onSuccess: (response) => {
-          setModalProgress({
-            isOpen: false,
-          })
-          window.location.reload()
-        },
-        onError: () => {
-          setModalProgress({
-            isOpen: true,
-            status: ModalProgressStatus.ERROR,
-          })
-        },
-      })
+    const request: DeleteCourseRequest = {
+      id: Number(history?.courseId ?? 0),
+      sessionId: Number(history?.id ?? 0),
     }
+
+    deleteCourse.mutate(request, {
+      onSuccess: () => {
+        setModalProgress({
+          isOpen: false,
+        })
+        window.location.reload()
+      },
+      onError: () => {
+        setModalProgress({
+          isOpen: true,
+          status: ModalProgressStatus.ERROR,
+        })
+      },
+    })
   }
 
   const handleOpen = () => {
